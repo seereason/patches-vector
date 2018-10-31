@@ -4,6 +4,7 @@ module Data.Patch.Internal where
 import Data.Monoid
 import Data.Ord
 import qualified Data.List as List
+import qualified Data.Semigroup as Sem
 import qualified Data.Vector as Vector
 import qualified Data.Vector.Mutable as MVector
 import qualified Data.Vector.Generic as GVector
@@ -145,9 +146,8 @@ normalise grp = let (inserts, deletes, replaces) = partition3 grp
         normalise' [] (d:_) _  = [d]
         normalise' _ _ _ = error "Impossible!"
 
-instance Eq a => Monoid (Patch a) where
-  mempty = Patch []
-  mappend (Patch a) (Patch b) = Patch $ merge a b (0 :: Int)
+instance (Eq a) => Sem.Semigroup (Patch a) where
+  (Patch a) <> (Patch b) = Patch $ merge a b (0 :: Int)
     where
       merge [] ys  off  = map (over index (+ off)) ys
       merge xs []  _    = xs
@@ -170,6 +170,12 @@ instance Eq a => Monoid (Patch a) where
       offset (Replace {}) = 0
       replace _ o n | o == n = id
       replace i o n | otherwise = (Replace i o n :)
+
+instance Eq a => Monoid (Patch a) where
+  mempty = Patch []
+#if !(MIN_VERSION_base(4,11,0))
+  mappend = (<>)
+#endif
 
 -- | Returns true if a patch can be safely applied to a document, that is,
 --   @applicable p d@ holds when @d@ is a valid source document for the patch @p@.
