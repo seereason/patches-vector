@@ -1,4 +1,4 @@
-{-# LANGUAGE BangPatterns, Trustworthy #-}
+{-# LANGUAGE BangPatterns, CPP, Trustworthy #-}
 -- | For day-to-day use, please see "Data.Patch"
 module Data.Patch.Internal where
 import Data.Monoid
